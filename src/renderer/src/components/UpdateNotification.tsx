@@ -15,7 +15,6 @@ export const UpdateNotification: React.FC = () => {
       setShowUpdateButton(true)
     })
 
-    // 組件卸載時清理監聽器
     return () => {
       window.api.removeUpdateListeners()
     }

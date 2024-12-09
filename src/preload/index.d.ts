@@ -7,7 +7,6 @@ declare global {
       checkForUpdates: () => Promise<void>
       quitAndInstall: () => Promise<void>
       onUpdateMessage: (callback: (message: string) => void) => void
-      onUpdateReady: (callback: () => void) => void
       removeUpdateListeners: () => void
     }
   }

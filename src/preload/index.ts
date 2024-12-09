@@ -11,14 +11,9 @@ const api = {
   onUpdateMessage: (callback: (message: string) => void) => {
     ipcRenderer.on('update-message', (_event, message) => callback(message))
   },
-  // 監聽更新準備安裝
-  onUpdateReady: (callback: () => void) => {
-    ipcRenderer.on('update-ready-to-install', () => callback())
-  },
   // 移除更新消息監聽
   removeUpdateListeners: () => {
     ipcRenderer.removeAllListeners('update-message')
-    ipcRenderer.removeAllListeners('update-ready-to-install')
   }
 }
 

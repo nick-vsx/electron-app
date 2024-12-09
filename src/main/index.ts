@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
 import log from 'electron-log'
 import icon from '../../resources/icon.png?asset'
+import { createUpdateWindow, sendUpdateMessage, closeUpdateWindow } from './update-window'
 
 // 配置日誌
 autoUpdater.logger = log
@@ -11,47 +12,42 @@ autoUpdater.logger.transports.file.level = 'info'
 
 let mainWindow: BrowserWindow | null = null
 
-// 更新事件處理
-function sendStatusToWindow(text: string): void {
-  log.info(text)
-  if (mainWindow) {
-    mainWindow.webContents.send('update-message', text)
-  }
-}
 
 // 設置自動更新事件監聽
 function setupAutoUpdater(): void {
   // 檢查更新時
   autoUpdater.on('checking-for-update', () => {
-    sendStatusToWindow('Checking for updates...')
+    sendUpdateMessage('Checking for updates...')
   })
 
   // 有可用更新時
   autoUpdater.on('update-available', (info) => {
-    sendStatusToWindow(`Update available: ${info.version}`)
+    createUpdateWindow()
+    sendUpdateMessage(`Update available: ${info.version}`)
   })
 
   // 無可用更新時
   autoUpdater.on('update-not-available', () => {
-    sendStatusToWindow('Already on the latest version.')
+    sendUpdateMessage('Already on the latest version.')
+    setTimeout(closeUpdateWindow, 2000)
   })
 
   // 更新發生錯誤時
   autoUpdater.on('error', (err) => {
-    sendStatusToWindow(`Error in auto-updater: ${err.message}`)
+    sendUpdateMessage(`Error in auto-updater: ${err.message}`)
+    setTimeout(closeUpdateWindow, 2000)
   })
 
   // 更新下載進度
   autoUpdater.on('download-progress', (progressObj) => {
-    sendStatusToWindow(
-      `Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`
+    sendUpdateMessage(
+      `Downloaded ${progressObj.percent.toFixed(1)}% (${progressObj.transferred}/${progressObj.total})`
     )
   })
 
   // 更新下載完成時
   autoUpdater.on('update-downloaded', (info) => {
-    sendStatusToWindow(`Update downloaded. Version: ${info.version}`)
-    mainWindow?.webContents.send('update-ready-to-install')
+    sendUpdateMessage(`Update downloaded. Version: ${info.version}`)
   })
 }
 

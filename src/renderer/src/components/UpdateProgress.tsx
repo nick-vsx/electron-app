@@ -12,7 +12,7 @@ export const UpdateProgress: React.FC = () => {
       
       // 解析下載進度
       if (text.includes('Downloaded')) {
-        const match = text.match(/Downloaded (\d+)%/)
+        const match = text.match(/Downloaded (\d+)/)
         if (match) {
           setProgress(parseInt(match[1]))
         }
@@ -29,8 +29,12 @@ export const UpdateProgress: React.FC = () => {
     }
   }, [])
 
-  const handleInstall = () => {
-    window.api.quitAndInstall()
+  const handleInstall = async () => {
+    try {
+      await window.api.quitAndInstall()
+    } catch (error) {
+      console.error('Failed to install update:', error)
+    }
   }
 
   return (

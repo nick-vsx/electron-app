@@ -4,22 +4,28 @@ export const UpdateNotification: React.FC = () => {
   const [message, setMessage] = useState<string>('')
   const [progress, setProgress] = useState<number>(0)
   const [showInstallButton, setShowInstallButton] = useState(false)
+  const [error, setError] = useState<string>('')
+  const [isRetrying, setIsRetrying] = useState(false)
+
+  const checkForUpdates = async () => {
+    try {
+      setError('')
+      setIsRetrying(true)
+      await window.api.checkForUpdates()
+    } catch (error) {
+      console.error('Failed to check for updates:', error)
+      setError('Failed to check for updates. Please try again.')
+    } finally {
+      setIsRetrying(false)
+    }
+  }
 
   useEffect(() => {
-    // 檢查更新
-    const checkForUpdates = async () => {
-      try {
-        await window.api.checkForUpdates()
-      } catch (error) {
-        console.error('Failed to check for updates:', error)
-      }
-    }
-
     // 監聽更新消息
     window.api.onUpdateMessage((text: string) => {
       console.log('Update message:', text)
       setMessage(text)
-
+      
       // 解析下載進度
       if (text.includes('Downloaded')) {
         const match = text.match(/Downloaded ([\d.]+)%/)
@@ -32,6 +38,7 @@ export const UpdateNotification: React.FC = () => {
       // 檢查是否下載完成
       if (text.includes('Update downloaded')) {
         setShowInstallButton(true)
+        setError('')
       }
 
       // 如果是最新版本，隱藏進度條
@@ -39,15 +46,15 @@ export const UpdateNotification: React.FC = () => {
         setProgress(0)
         setTimeout(() => {
           setMessage('')
+          setError('')
         }, 3000)
       }
 
-      // 如果發生錯誤，隱藏進度條
+      // 如果發生錯誤，設置錯誤狀態
       if (text.includes('Error')) {
         setProgress(0)
-        setTimeout(() => {
-          setMessage('')
-        }, 3000)
+        setError(text)
+        setShowInstallButton(false)
       }
     })
 
@@ -65,19 +72,39 @@ export const UpdateNotification: React.FC = () => {
       await window.api.quitAndInstall()
     } catch (error) {
       console.error('Failed to install update:', error)
+      setError('Failed to install update. Please try again.')
     }
   }
 
-  if (!message) {
+  const handleRetry = () => {
+    checkForUpdates()
+  }
+
+  // 如果沒有消息且沒有錯誤，不渲染組件
+  if (!message && !error) {
     return null
   }
 
   return (
     <div className="update-notification">
-      <div className="update-message">
-        {message}
-      </div>
-      {progress > 0 && (
+      {message && !error && (
+        <div className="update-message">
+          {message}
+        </div>
+      )}
+      {error && (
+        <div className="error-message">
+          {error}
+          <button 
+            className="retry-button" 
+            onClick={handleRetry}
+            disabled={isRetrying}
+          >
+            {isRetrying ? 'Checking...' : 'Try Again'}
+          </button>
+        </div>
+      )}
+      {progress > 0 && !error && (
         <div className="progress-container">
           <div className="progress-bar">
             <div className="progress-fill" style={{ width: `${progress}%` }} />
@@ -85,7 +112,7 @@ export const UpdateNotification: React.FC = () => {
           <div className="progress-text">{progress.toFixed(1)}%</div>
         </div>
       )}
-      {showInstallButton && (
+      {showInstallButton && !error && (
         <button className="install-button" onClick={handleInstall}>
           Install and Restart
         </button>
@@ -108,6 +135,35 @@ export const UpdateNotification: React.FC = () => {
           margin-bottom: 10px;
           font-size: 14px;
           color: #333;
+        }
+
+        .error-message {
+          margin-bottom: 10px;
+          font-size: 14px;
+          color: #f44336;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .retry-button {
+          padding: 6px 12px;
+          background: #f44336;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
+          transition: background 0.3s ease;
+        }
+
+        .retry-button:hover {
+          background: #d32f2f;
+        }
+
+        .retry-button:disabled {
+          background: #ccc;
+          cursor: not-allowed;
         }
 
         .progress-container {

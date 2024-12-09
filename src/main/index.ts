@@ -69,13 +69,13 @@ function createWindow(): void {
     mainWindow?.show()
     // 在開發環境下不檢查更新
     if (!is.dev) {
-      // 延遲 3 秒檢查更新，確保渲染進程已完全加載
+      // 延遲 1 秒檢查更新，確保渲染進程已完全加載
       setTimeout(() => {
         log.info('Checking for updates...')
         autoUpdater.checkForUpdates().catch((err) => {
           log.error('Error checking for updates:', err)
         })
-      }, 3000)
+      }, 1000)
     }
   })
 

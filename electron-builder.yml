@@ -29,10 +29,9 @@ mac:
   target:
     - target: dmg
     - target: zip
+  artifactName: ${name}-${version}-${arch}.${ext}
 dmg:
   artifactName: ${name}-${version}.${ext}
-  writeUpdateInfo: false
-  sign: false
 linux:
   target:
     - AppImage
@@ -49,3 +48,4 @@ publish:
   repo: electron-app
   private: false
   releaseType: release
+generateUpdatesFilesForAllChannels: true

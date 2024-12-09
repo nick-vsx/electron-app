@@ -26,8 +26,13 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
+  target:
+    - target: dmg
+    - target: zip
 dmg:
   artifactName: ${name}-${version}.${ext}
+  writeUpdateInfo: false
+  sign: false
 linux:
   target:
     - AppImage
@@ -39,9 +44,8 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  # 修改發布配置為 GitHub
   provider: github
   owner: nick-vsx
   repo: electron-app
-electronDownload:
-  mirror: https://npmmirror.com/mirrors/electron/
+  private: false
+  releaseType: release

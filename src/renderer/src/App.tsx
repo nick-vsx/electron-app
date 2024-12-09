@@ -23,7 +23,7 @@ function App(): JSX.Element {
         &nbsp;and <span className="ts">TypeScript</span>
       </div>
       <p className="tip">
-        Current Version: <code>v{version}</code>
+        Current Version O3O: <code>v{version}</code>
       </p>
       <div className="actions">
         <div className="action">

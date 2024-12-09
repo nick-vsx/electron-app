@@ -1,6 +1,6 @@
 {
   "name": "electron-app",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -27,7 +27,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
     "electron-log": "^5.2.4",
-    "electron-updater": "^6.1.7"
+    "electron-updater": "5.3.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",

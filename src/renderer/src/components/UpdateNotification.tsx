@@ -11,7 +11,10 @@ export const UpdateNotification: React.FC = () => {
     try {
       setError('')
       setIsRetrying(true)
-      await window.api.checkForUpdates()
+      const result = await window.api.checkForUpdates()
+      if (result && !result.success) {
+        setError(result.error || 'Failed to check for updates')
+      }
     } catch (error) {
       console.error('Failed to check for updates:', error)
       setError('Failed to check for updates. Please try again.')
@@ -51,7 +54,7 @@ export const UpdateNotification: React.FC = () => {
       }
 
       // 如果發生錯誤，設置錯誤狀態
-      if (text.includes('Error')) {
+      if (text.includes('Error in auto-updater')) {
         setProgress(0)
         setError(text)
         setShowInstallButton(false)
@@ -93,8 +96,10 @@ export const UpdateNotification: React.FC = () => {
         </div>
       )}
       {error && (
-        <div className="error-message">
-          {error}
+        <div className="error-container">
+          <div className="error-message">
+            {error}
+          </div>
           <button 
             className="retry-button" 
             onClick={handleRetry}
@@ -137,13 +142,14 @@ export const UpdateNotification: React.FC = () => {
           color: #333;
         }
 
-        .error-message {
+        .error-container {
           margin-bottom: 10px;
+        }
+
+        .error-message {
           font-size: 14px;
           color: #f44336;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
+          margin-bottom: 10px;
         }
 
         .retry-button {

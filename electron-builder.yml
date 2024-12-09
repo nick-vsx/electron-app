@@ -48,4 +48,5 @@ publish:
   repo: electron-app
   private: false
   releaseType: release
-generateUpdatesFilesForAllChannels: true
+  updaterCacheDirName: electron-app-updater
+forceCodeSigning: false

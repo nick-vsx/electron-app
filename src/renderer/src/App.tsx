@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import Versions from './components/Versions'
-import { UpdateNotification } from './components/UpdateNotification'
 import electronLogo from './assets/electron.svg'
 
 function App(): JSX.Element {
@@ -38,7 +37,6 @@ function App(): JSX.Element {
         </div>
       </div>
       <Versions></Versions>
-      <UpdateNotification />
     </>
   )
 }

@@ -4,7 +4,7 @@ declare global {
   interface Window {
     electron: ElectronAPI
     api: {
-      checkForUpdates: () => Promise<void>
+      checkForUpdates: () => Promise<{ success: boolean; error?: string }>
       quitAndInstall: () => Promise<void>
       onUpdateMessage: (callback: (message: string) => void) => void
       removeUpdateListeners: () => void

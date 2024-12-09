@@ -1,29 +1,49 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { autoUpdater } from 'electron-updater'
+import { autoUpdater, UpdateDownloadedEvent } from 'electron-updater'
 import log from 'electron-log'
 import icon from '../../resources/icon.png?asset'
-import { createUpdateWindow, sendUpdateMessage, closeUpdateWindow } from './update-window'
+import { 
+  createUpdateWindow, 
+  sendUpdateMessage, 
+  closeUpdateWindow,
+  showUpdateWindow,
+  isUpdateWindowOpen 
+} from './update-window'
 
 // 配置日誌
 autoUpdater.logger = log
 autoUpdater.logger.transports.file.level = 'info'
+// 配置自動更新
+autoUpdater.autoDownload = true
+autoUpdater.autoInstallOnAppQuit = true
 
 let mainWindow: BrowserWindow | null = null
+let downloadedUpdate: UpdateDownloadedEvent | null = null
 
 
 // 設置自動更新事件監聽
 function setupAutoUpdater(): void {
   // 檢查更新時
   autoUpdater.on('checking-for-update', () => {
+    if (!isUpdateWindowOpen()) {
+      createUpdateWindow()
+    }
     sendUpdateMessage('Checking for updates...')
   })
 
   // 有可用更新時
   autoUpdater.on('update-available', (info) => {
-    createUpdateWindow()
+    showUpdateWindow()
     sendUpdateMessage(`Update available: ${info.version}`)
+    // 開始下載
+    try {
+      autoUpdater.downloadUpdate()
+    } catch (err) {
+      log.error('Download update error:', err)
+      sendUpdateMessage(`Error starting download: ${err.message}`)
+    }
   })
 
   // 無可用更新時
@@ -34,20 +54,24 @@ function setupAutoUpdater(): void {
 
   // 更新發生錯誤時
   autoUpdater.on('error', (err) => {
-    sendUpdateMessage(`Error in auto-updater: ${err.message}`)
-    setTimeout(closeUpdateWindow, 2000)
+    log.error('Update error:', err)
+    showUpdateWindow()
+    sendUpdateMessage(`Update error: ${err.message}. Please try again later.`)
   })
 
   // 更新下載進度
   autoUpdater.on('download-progress', (progressObj) => {
-    sendUpdateMessage(
-      `Downloaded ${progressObj.percent.toFixed(1)}% (${progressObj.transferred}/${progressObj.total})`
-    )
+    showUpdateWindow()
+    const message = `Downloaded ${progressObj.percent.toFixed(1)}% (${progressObj.transferred}/${progressObj.total})`
+    log.info(message)
+    sendUpdateMessage(message)
   })
 
   // 更新下載完成時
   autoUpdater.on('update-downloaded', (info) => {
-    sendUpdateMessage(`Update downloaded. Version: ${info.version}`)
+    downloadedUpdate = info
+    showUpdateWindow()
+    sendUpdateMessage(`Update downloaded. Version: ${info.version}. Click to install.`)
   })
 }
 
@@ -69,13 +93,14 @@ function createWindow(): void {
     mainWindow?.show()
     // 在開發環境下不檢查更新
     if (!is.dev) {
-      // 延遲 1 秒檢查更新，確保渲染進程已完全加載
+      // 延遲 3 秒檢查更新，確保渲染進程已完全加載
       setTimeout(() => {
         log.info('Checking for updates...')
         autoUpdater.checkForUpdates().catch((err) => {
           log.error('Error checking for updates:', err)
+          sendUpdateMessage(`Error in auto-updater: ${err.message}`)
         })
-      }, 1000)
+      }, 3000)
     }
   })
 
@@ -115,14 +140,28 @@ app.whenReady().then(() => {
   createWindow()
 
   // 添加 IPC 處理程序
-  ipcMain.handle('check-for-updates', () => {
+  ipcMain.handle('check-for-updates', async () => {
     if (!is.dev) {
-      return autoUpdater.checkForUpdates()
+      try {
+        await autoUpdater.checkForUpdates()
+        return { success: true }
+      } catch (error) {
+        log.error('Check for updates error:', error)
+        return { 
+          success: false, 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        }
+      }
     }
   })
 
   ipcMain.handle('quit-and-install', () => {
-    autoUpdater.quitAndInstall()
+    if (downloadedUpdate) {
+      setImmediate(() => {
+        app.removeAllListeners('window-all-closed')
+        autoUpdater.quitAndInstall(false)
+      })
+    }
   })
 
   // 新增: 獲取應用版本號

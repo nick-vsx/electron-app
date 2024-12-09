@@ -1,9 +1,18 @@
+import { useEffect, useState } from 'react'
 import Versions from './components/Versions'
 import { UpdateNotification } from './components/UpdateNotification'
 import electronLogo from './assets/electron.svg'
 
 function App(): JSX.Element {
+  const [version, setVersion] = useState<string>('')
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+
+  useEffect(() => {
+    // 獲取應用版本號
+    window.api.getVersion().then((ver) => {
+      setVersion(ver)
+    })
+  }, [])
 
   return (
     <>
@@ -14,7 +23,7 @@ function App(): JSX.Element {
         &nbsp;and <span className="ts">TypeScript</span>
       </div>
       <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
+        Current Version: <code>v{version}</code>
       </p>
       <div className="actions">
         <div className="action">

@@ -8,6 +8,7 @@ declare global {
       quitAndInstall: () => Promise<void>
       onUpdateMessage: (callback: (message: string) => void) => void
       removeUpdateListeners: () => void
+      getVersion: () => Promise<string>
     }
   }
 }

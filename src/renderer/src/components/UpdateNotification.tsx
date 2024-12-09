@@ -19,7 +19,7 @@ export const UpdateNotification: React.FC = () => {
     window.api.onUpdateMessage((text: string) => {
       console.log('Update message:', text)
       setMessage(text)
-      
+
       // 解析下載進度
       if (text.includes('Downloaded')) {
         const match = text.match(/Downloaded ([\d.]+)%/)
@@ -68,7 +68,6 @@ export const UpdateNotification: React.FC = () => {
     }
   }
 
-  // 如果沒有消息，不渲染組件
   if (!message) {
     return null
   }

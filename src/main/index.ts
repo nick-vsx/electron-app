@@ -125,6 +125,11 @@ app.whenReady().then(() => {
     autoUpdater.quitAndInstall()
   })
 
+  // 新增: 獲取應用版本號
+  ipcMain.handle('get-version', () => {
+    return app.getVersion()
+  })
+
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
